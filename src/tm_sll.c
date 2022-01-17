@@ -38,6 +38,7 @@ for(node=singlyLinkedList->start; singlyLinkedList->start!=NULL; node=singlyLink
 singlyLinkedList->start=node->next;
 free(node);
 }
+singlyLinkedList->end=NULL;
 singlyLinkedList->size=0;
 }
 
