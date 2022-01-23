@@ -184,8 +184,14 @@ else node=node->left;
 return NULL;
 }
 
-
-
+int getHeightOfAVLTree(AVLTreeNode *node)
+{
+if(node==NULL) return 0;
+int leftHeight,rightHeight;
+leftHeight=getHeightOfAVLTree(node->left);
+rightHeight=getHeightOfAVLTree(node->right);
+return (leftHeight>rightHeight)?leftHeight+1:rightHeight+1;
+}
 
 
 //.......................  AVLTreeInOrderIterator ......................................
@@ -206,7 +212,7 @@ return avlTreeInOrderIterator;
 }
 
 avlTreeInOrderIterator.stack=createStack(success);
-if(success==false) return avlTreeInOrderIterator;
+if(*success==false) return avlTreeInOrderIterator;
 
 node=avlTree->start;
 while(node!=NULL)
@@ -225,15 +231,15 @@ avlTreeInOrderIterator.node=popFromStack(avlTreeInOrderIterator.stack,success);
 return avlTreeInOrderIterator;
 }
 
-bool hasNextElementInAVLTree(AVLTreeInOrderIterator *avlTreeInOrderIterator)
+bool hasNextInOrderElementInAVLTree(AVLTreeInOrderIterator *avlTreeInOrderIterator)
 {
 if(avlTreeInOrderIterator==NULL || avlTreeInOrderIterator->node==NULL) return false;
 return true;
 }
 
 
-void *getNextElementFromAVLTree(AVLTreeInOrderIterator *avlTreeInOrderIterator,bool *success)
-{
+void *getNextInOrderElementFromAVLTree(AVLTreeInOrderIterator *avlTreeInOrderIterator,bool *success)
+{     
 if(success) *success=false;
 
 if(avlTreeInOrderIterator==NULL || avlTreeInOrderIterator->node==NULL) return NULL;
@@ -270,5 +276,264 @@ if(success) *success=true;
 return j->ptr;
 }
 //...................................................................
+
+//............  AVLTreePreOrderIterator......
+
+AVLTreePreOrderIterator getAVLTreePreOrderIterator(AVLTree *avlTree,bool *success)
+{
+if(success) *success=false;
+AVLTreePreOrderIterator avlTreePreOrderIterator;
+AVLTreeNode *node;
+
+avlTreePreOrderIterator.node=NULL;
+avlTreePreOrderIterator.stack=NULL;
+
+if(avlTree==NULL) return avlTreePreOrderIterator;
+if(avlTree->start==NULL)
+{
+if(success) *success=true;
+return avlTreePreOrderIterator;
+}
+
+avlTreePreOrderIterator.stack=createStack(success);
+if(*success==false) return avlTreePreOrderIterator;
+
+node=avlTree->start;
+
+avlTreePreOrderIterator.node=node;
+if(success) *success=true;
+return avlTreePreOrderIterator;
+}
+
+bool hasNextPreOrderElementInAVLTree(AVLTreePreOrderIterator *avlTreePreOrderIterator)
+{
+if(avlTreePreOrderIterator==NULL || avlTreePreOrderIterator->node==NULL) return false;
+return true;
+}
+
+
+void *getNextPreOrderElementFromAVLTree(AVLTreePreOrderIterator *avlTreePreOrderIterator,bool *success)
+{
+if(success) *success=false;
+
+if(avlTreePreOrderIterator==NULL || avlTreePreOrderIterator->node==NULL) return NULL;
+AVLTreeNode *node,*j;
+
+j=avlTreePreOrderIterator->node;
+
+node=j->right;
+if(node!=NULL)
+{
+pushOnStack(avlTreePreOrderIterator->stack,node,success);
+if(*success==false)
+{
+destroyStack(avlTreePreOrderIterator->stack);
+avlTreePreOrderIterator->stack=NULL;
+avlTreePreOrderIterator->node=NULL;
+if(success) *success=true;
+return j->ptr;
+}
+
+}
+
+node=j->left;
+if(node!=NULL)
+{
+pushOnStack(avlTreePreOrderIterator->stack,node,success);
+if(*success==false)
+{
+destroyStack(avlTreePreOrderIterator->stack);
+avlTreePreOrderIterator->stack=NULL;
+avlTreePreOrderIterator->node=NULL;
+if(success) *success=true;
+return j->ptr;
+}
+
+}
+
+if(isStackEmpty(avlTreePreOrderIterator->stack))
+{
+destroyStack(avlTreePreOrderIterator->stack);
+avlTreePreOrderIterator->stack=NULL;
+avlTreePreOrderIterator->node=NULL;
+}
+else
+{
+avlTreePreOrderIterator->node=(AVLTreeNode *)popFromStack(avlTreePreOrderIterator->stack,success);
+}
+
+if(success) *success=true;
+return j->ptr;
+}
+
+//...........................................
+//...........AVLTreePostOrderIterator
+AVLTreePostOrderIterator getAVLTreePostOrderIterator(AVLTree *avlTree,bool *success)
+{
+if(success) *success=false;
+AVLTreePostOrderIterator avlTreePostOrderIterator;
+avlTreePostOrderIterator.node=NULL;
+avlTreePostOrderIterator.stack=NULL;
+
+if(avlTree==NULL) return avlTreePostOrderIterator;
+if(avlTree->start==NULL)
+{
+if(success) *success=true;
+return avlTreePostOrderIterator;
+}
+
+AVLTreeNode *node;
+avlTreePostOrderIterator.stack=createStack(success);
+if(*success==false) return avlTreePostOrderIterator;
+
+node=avlTree->start;
+
+while(1)
+{
+
+while(node!=NULL)
+{
+
+if(node->right!=NULL)
+{
+pushOnStack(avlTreePostOrderIterator.stack,node->right,success);
+if(*success==false)
+{
+destroyStack(avlTreePostOrderIterator.stack);
+avlTreePostOrderIterator.node=NULL;
+avlTreePostOrderIterator.stack=NULL;
+return avlTreePostOrderIterator;
+}
+}
+
+pushOnStack(avlTreePostOrderIterator.stack,node,success);
+if(*success==false)
+{
+destroyStack(avlTreePostOrderIterator.stack);
+avlTreePostOrderIterator.node=NULL;
+avlTreePostOrderIterator.stack=NULL;
+return avlTreePostOrderIterator;
+}
+node=node->left;
+}
+
+node=popFromStack(avlTreePostOrderIterator.stack,success);
+if(isStackEmpty(avlTreePostOrderIterator.stack))
+{
+destroyStack(avlTreePostOrderIterator.stack);
+avlTreePostOrderIterator.stack=NULL;
+break;
+}
+
+if(!isStackEmpty(avlTreePostOrderIterator.stack) && node->right!=NULL && node->right==getFromTopOfStack(avlTreePostOrderIterator.stack,success))
+{
+popFromStack(avlTreePostOrderIterator.stack,success);
+pushOnStack(avlTreePostOrderIterator.stack,node,success);
+if(*success==false)
+{
+destroyStack(avlTreePostOrderIterator.stack);
+avlTreePostOrderIterator.node=NULL;
+avlTreePostOrderIterator.stack=NULL;
+return  avlTreePostOrderIterator;
+}
+node=node->right;
+}
+else
+{
+break;
+}
+
+}
+
+avlTreePostOrderIterator.node=node;
+if(success) *success=true;
+return  avlTreePostOrderIterator;
+}
+
+bool hasNextPostOrderElementInAVLTree(AVLTreePostOrderIterator *avlTreePostOrderIterator)
+{
+if(avlTreePostOrderIterator==NULL || avlTreePostOrderIterator->node==NULL) return false;
+return true;
+}
+
+void *getNextPostOrderElementFromAVLTree(AVLTreePostOrderIterator *avlTreePostOrderIterator,bool *success)
+{
+if(success) *success=false;
+if(avlTreePostOrderIterator==NULL || avlTreePostOrderIterator->node==NULL) return NULL;
+
+AVLTreeNode *node,*j;
+j=avlTreePostOrderIterator->node;
+
+if(isStackEmpty(avlTreePostOrderIterator->stack))
+{
+destroyStack(avlTreePostOrderIterator->stack);
+avlTreePostOrderIterator->stack=NULL;
+avlTreePostOrderIterator->node=NULL;
+}
+else
+{
+
+node=NULL;
+while(1)
+{
+
+while(node!=NULL)
+{
+if(node->right!=NULL)
+{
+pushOnStack(avlTreePostOrderIterator->stack,node->right,success);
+if(*success==false)
+{
+destroyStack(avlTreePostOrderIterator->stack);
+avlTreePostOrderIterator->stack=NULL;
+avlTreePostOrderIterator->node=NULL;
+break;
+}
+}
+
+pushOnStack(avlTreePostOrderIterator->stack,node,success);
+if(*success==false)
+{
+destroyStack(avlTreePostOrderIterator->stack);
+avlTreePostOrderIterator->stack=NULL;
+avlTreePostOrderIterator->node=NULL;
+break;
+}
+
+node=node->left;
+}
+
+node=popFromStack(avlTreePostOrderIterator->stack,success);
+
+if(!isStackEmpty(avlTreePostOrderIterator->stack) && node->right!=NULL && node->right==getFromTopOfStack(avlTreePostOrderIterator->stack,success))
+{
+popFromStack(avlTreePostOrderIterator->stack,success);
+pushOnStack(avlTreePostOrderIterator->stack,node,success);
+if(*success==false)
+{
+destroyStack(avlTreePostOrderIterator->stack);
+avlTreePostOrderIterator->stack=NULL;
+avlTreePostOrderIterator->node=NULL;
+break;
+}
+
+node=node->right;
+}
+else
+{
+avlTreePostOrderIterator->node=node;
+break;
+}
+
+}
+
+}
+
+if(success) *success=true;
+return j->ptr;
+}
+
+//........................
+
 
 #endif

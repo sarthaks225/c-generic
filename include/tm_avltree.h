@@ -24,6 +24,20 @@ AVLTreeNode *node;
 Stack *stack;
 }AVLTreeInOrderIterator;
 
+typedef struct __$_tm_avl_tree_preoder_iterator
+{
+AVLTreeNode *node;
+Stack *stack;
+}AVLTreePreOrderIterator;
+
+typedef struct __$_tm_avl_tree_postoder_iterator
+{
+AVLTreeNode *node;
+Stack *stack;
+}AVLTreePostOrderIterator;
+
+
+
 
 AVLTree *createAVLTree(bool *,int (*predicate)(void *,void *));
 void addToAVLTree(AVLTree *,void *,bool *);
@@ -36,9 +50,19 @@ void *getFromAVLTree(AVLTree *,void *,bool *);
 
 
 AVLTreeInOrderIterator getAVLTreeInOrderIterator(AVLTree *,bool *);
-bool hasNextElementInAVLTree(AVLTreeInOrderIterator *);
-void *getNextElementFromAVLTree(AVLTreeInOrderIterator *,bool *);
+bool hasNextInOrderElementInAVLTree(AVLTreeInOrderIterator *);
+void *getNextInOrderElementFromAVLTree(AVLTreeInOrderIterator *,bool *);
 
+AVLTreePreOrderIterator getAVLTreePreOrderIterator(AVLTree *,bool *);
+bool hasNextPreOrderElementInAVLTree(AVLTreePreOrderIterator *);
+void *getNextPreOrderElementFromAVLTree(AVLTreePreOrderIterator *,bool *);
+
+AVLTreePostOrderIterator getAVLTreePostOrderIterator(AVLTree *,bool *);
+bool hasNextPostOrderElementInAVLTree(AVLTreePostOrderIterator *);
+void *getNextPostOrderElementFromAVLTree(AVLTreePostOrderIterator *,bool *);
+
+
+int getHeightOfAVLTree(AVLTreeNode *);
 
 
 #endif
