@@ -7,8 +7,9 @@ AVLTree *createAVLTree(bool *success,int (*predicate )(void *,void *))
 {
 if(success) *success=false;
 AVLTree *avlTree;
+if(predicate==NULL) return NULL;
 avlTree=(AVLTree *)malloc(sizeof(AVLTree));
-if(avlTree==NULL || predicate==NULL) return NULL;
+if(avlTree==NULL) return NULL;
 avlTree->start=NULL;
 avlTree->predicate=predicate;
 avlTree->size=0;
@@ -18,7 +19,7 @@ return avlTree;
 
 void addToAVLTree(AVLTree *avlTree,void *ptr,bool *success)
 {  
-
+Stack *stack; //stack is for balancing tree
 if(success) *success=false;
 if(avlTree==NULL || avlTree->predicate==NULL) return;
 
@@ -31,23 +32,38 @@ j->ptr=ptr;
 j->left=NULL;
 j->right=NULL;
 
-if(avlTree->start==NULL) avlTree->start=j;
-else
-{
-
-t=avlTree->start;
-while(1)
-{
-weight=avlTree->predicate(ptr,t->ptr);
-if(weight==0)
+stack=createStack(success); //stack for balancing tree
+if(*success==false) 
 {
 free(j);
 return;
 }
-if(weight>0) 
+
+if(avlTree->start==NULL) avlTree->start=j;
+else
 {
-                 //insertion at right side of tree
-if(t->right==NULL) 
+t=avlTree->start;
+while(1)
+{
+
+pushOnStack(stack,t,success);
+if(*success==false)
+{
+free(j);
+destroyStack(stack);
+return;
+}
+
+weight=avlTree->predicate(ptr,t->ptr);
+if(weight==0)
+{
+free(j);
+destroyStack(stack);
+return;
+}
+if(weight>0) 
+{            //insertion at right side of tree
+if(t->right==NULL)
 {
 t->right=j;
 break;
@@ -55,8 +71,7 @@ break;
 t=t->right;
 }
 else
-{
-                //insertion at left side of tree
+{      //insertion at left side of tree
 if(t->left==NULL)
 {
 t->left=j;
@@ -69,11 +84,11 @@ t=t->left;
 
 }
 
-
 avlTree->size++;
+balanceAVLTree(avlTree,stack);
+destroyStack(stack);
 if(success) *success=true;
 }
-
 
 void destroyAVLTree(AVLTree *avlTree)
 {
@@ -94,21 +109,37 @@ void clearAVLTree(AVLTree *avlTree)
      
 void *removeFromAVLTree(AVLTree *avlTree,void *ptr,bool *success)
 {
+Stack *stack;
 if(success) *success=false;
 if(avlTree==NULL || avlTree->start==NULL || avlTree->predicate==NULL) return NULL;
 int weight;
 AVLTreeNode *t,*j,*e,*f,**p2p;
 void *foundPtr;
 
+stack=createStack(success);
+if(*success==false) return NULL;
+
 for(t=avlTree->start; t!=NULL; )
-{
+{         //searching ptr in tree
+
 weight=avlTree->predicate(ptr,t->ptr);
 if(weight==0) break;
 j=t;
+pushOnStack(stack,t,success); //push on stack for balancing
+if(*success==false)
+{
+destroyStack(stack); return NULL;
+}
 if(weight>0) t=t->right; else t=t->left;
 }
-if(t==NULL) return NULL;
+
+if(t==NULL)  //if ptr not found
+{
+destroyStack(stack);
+return NULL;
+}
 foundPtr=t->ptr;
+
 
 if(t==avlTree->start) p2p=&(avlTree->start);
 else if(j->left==t) p2p=&(j->left);
@@ -154,10 +185,11 @@ e->left=t->left;
 
 }
 
-
 free(t);
 if(success) *success=true;
 avlTree->size--;
+balanceAVLTree(avlTree,stack);
+destroyStack(stack);
 return foundPtr;
 }
 
@@ -459,7 +491,7 @@ return true;
 void *getNextPostOrderElementFromAVLTree(AVLTreePostOrderIterator *avlTreePostOrderIterator,bool *success)
 {
 if(success) *success=false;
-if(avlTreePostOrderIterator==NULL || avlTreePostOrderIterator->node==NULL) return NULL;
+if(!hasNextPostOrderElementInAVLTree(avlTreePostOrderIterator)) return NULL;
 
 AVLTreeNode *node,*j;
 j=avlTreePostOrderIterator->node;
@@ -534,6 +566,153 @@ return j->ptr;
 }
 
 //........................
+//..............AVLTreeLevelOrderIterator
+/*
+AVLTreeLevelOrderIterator getAVLTreeLevelOrderIterator(AVLTree *avlTree,bool *success)
+{
+if(success) *success=false;
+AVLTreeLevelOrderIterator avlTreeLevelOrderIterator;
+avlTreeLevelOrderIterator.queue=NULL;
+avlTreeLevelOrderIterator.node=NULL;
+if(avlTree==NULL) return avlTreeLevelOrderIterator;
+
+if(avlTree->start==NULL) 
+{
+if(success) *success=true;
+return avlTreeLevelOrderIterator;
+}
+
+avlTreeLevelOrderIterator.queue=createQueue(queue,success);
+if(*success==false) return avlTreeLevelOrderIterator;
+avlTreeLevelOrderIterator.node=avlTree->start;
+if(success) *success=true;
+return avlTreeLevelOrderIterator;
+}
+
+bool hasNextLevelOrderElementInAVLTree(AVLTreeLevelOrderIterator *avlTreeLevelOrderIterator)
+{
+if(avlTreeLevelOrderIterator==NULL || avlTreeLevelOrderIterator->node==NULL) return false;
+return true;
+}
+
+void *getNextLevelOrderElementFromAVLTree(AVLTreeLevelOrderIterator *avlTreeLevelOrderIterator,bool *success)
+{
+if(success) *success=false;
+if(!hasNextLevelOrderElementInAVLTree(avlTreeLevelOrderIterator)) return NULL;
+AVLTreeNode *node,*p;
+
+int insertionCount,j,x;
+node=avlTreeLevelOrderIterator->node;
+addToQueue(avlTreeLevelOrderIterator->queue,node,success);
+insertionCount=1;
+if(*success==true) 
+{
+j=1;
+x=0;
+while(j<=insertionCount)
+{
+j++;
+p=removeFromQueue(avlTreeLevelOrderIterator->queue,success)
+avlTreeLevelOrderIterator->node=p;
+
+if(p->left!=NULL)
+{
+addToQueue(avlTreeLevelOrderIterator->queue,p->left,success);
+if(*success==false) 
+{
+destroyQueue(avlTreeLevelOrderIterator->queue);
+break;
+}
+x++;
+}
+if(p->right!=NULL)
+{
+addToQueue(avlTreeLevelOrderIterator->queue,p->left,success);
+if(*success==false) 
+{
+destroyQueue(avlTreeLevelOrderIterator->queue);
+break;
+}
+x++;
+}
+
+}
+
+
+}
+
+
+
+
+}
+
+
+
+*/
+//.................
+void balanceAVLTree(AVLTree *avlTree,Stack *stack)
+{
+if(isStackEmpty(stack)) return;
+
+bool success;
+AVLTreeNode *root,*parent,*lc,*rc,*lcrc,*rclc,**p2p;
+int diff,lh,rh;
+
+while(!isStackEmpty(stack))
+{
+
+root=popFromStack(stack,&success);
+rc=root->right;
+lc=root->left;
+lh=getHeightOfAVLTree(lc);
+rh=getHeightOfAVLTree(rc);
+diff=lh-rh;
+if(diff>=-1 && diff<=1) continue;
+parent=getFromTopOfStack(stack,&success);
+
+if(isStackEmpty(stack)) p2p=&(avlTree->start);
+else
+{
+if(parent->left==root) p2p=&(parent->left);
+else p2p=&(parent->right);
+}
+
+if(rh>lh)  //balance rh
+{
+rclc=rc->left;
+if(getHeightOfAVLTree(rclc)>getHeightOfAVLTree(rc->right))
+{
+rc->left=rclc->right;         // right is left heavy
+rclc->right=rc;
+root->right=rclc;
+}
+                             //now 100%right is right heavy
+
+rc=root->right;
+root->right=rc->left;
+rc->left=root;
+*p2p=rc;
+}
+else  //balance lh
+{
+lcrc=lc->right;
+if(getHeightOfAVLTree(lcrc)>getHeightOfAVLTree(lc->left))
+{
+lc->right=lcrc->left;       //left is right heavy
+lcrc->left=lc;
+root->left=lcrc;
+}
+                           //now 100% left is left heavy
+
+lc=root->left;
+root->left=lc->right;
+lc->right=root;
+*p2p=lc;
+}
+
+}
+
+}
 
 
 #endif
