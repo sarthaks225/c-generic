@@ -94,6 +94,7 @@ void destroyAVLTree(AVLTree *avlTree)
 {
 if(avlTree==NULL) return;
 clearAVLTree(avlTree);
+free(avlTree);
 }
 
 int getSizeOfAVLTree(AVLTree *avlTree)
@@ -104,7 +105,33 @@ return avlTree->size;
 
 void clearAVLTree(AVLTree *avlTree)
 {
+bool success;
+if(avlTree==NULL || avlTree->start==NULL) return;
+AVLTreeNode *node; 
+Queue *queue;
+queue=createQueue(&success);
+if(success==false) return;
+AVLTreePostOrderIterator itr;
 
+itr=getAVLTreePostOrderIterator(avlTree,&success);
+if(success==false) return;
+while(hasNextPostOrderElementInAVLTree(&itr))
+{
+addToQueue(queue,getNextPostOrderElementFromAVLTree(&itr,&success),&success);
+if(success==false)
+{
+destroyQueue(queue);
+return;
+}
+}
+
+while(isQueueEmpty(queue))
+{
+node=removeFromQueue(queue,&success);
+free(node);
+}
+avlTree->start=NULL;
+avlTree->size=0;
 }
      
 void *removeFromAVLTree(AVLTree *avlTree,void *ptr,bool *success)
@@ -566,90 +593,7 @@ return j->ptr;
 }
 
 //........................
-//..............AVLTreeLevelOrderIterator
-/*
-AVLTreeLevelOrderIterator getAVLTreeLevelOrderIterator(AVLTree *avlTree,bool *success)
-{
-if(success) *success=false;
-AVLTreeLevelOrderIterator avlTreeLevelOrderIterator;
-avlTreeLevelOrderIterator.queue=NULL;
-avlTreeLevelOrderIterator.node=NULL;
-if(avlTree==NULL) return avlTreeLevelOrderIterator;
 
-if(avlTree->start==NULL) 
-{
-if(success) *success=true;
-return avlTreeLevelOrderIterator;
-}
-
-avlTreeLevelOrderIterator.queue=createQueue(queue,success);
-if(*success==false) return avlTreeLevelOrderIterator;
-avlTreeLevelOrderIterator.node=avlTree->start;
-if(success) *success=true;
-return avlTreeLevelOrderIterator;
-}
-
-bool hasNextLevelOrderElementInAVLTree(AVLTreeLevelOrderIterator *avlTreeLevelOrderIterator)
-{
-if(avlTreeLevelOrderIterator==NULL || avlTreeLevelOrderIterator->node==NULL) return false;
-return true;
-}
-
-void *getNextLevelOrderElementFromAVLTree(AVLTreeLevelOrderIterator *avlTreeLevelOrderIterator,bool *success)
-{
-if(success) *success=false;
-if(!hasNextLevelOrderElementInAVLTree(avlTreeLevelOrderIterator)) return NULL;
-AVLTreeNode *node,*p;
-
-int insertionCount,j,x;
-node=avlTreeLevelOrderIterator->node;
-addToQueue(avlTreeLevelOrderIterator->queue,node,success);
-insertionCount=1;
-if(*success==true) 
-{
-j=1;
-x=0;
-while(j<=insertionCount)
-{
-j++;
-p=removeFromQueue(avlTreeLevelOrderIterator->queue,success)
-avlTreeLevelOrderIterator->node=p;
-
-if(p->left!=NULL)
-{
-addToQueue(avlTreeLevelOrderIterator->queue,p->left,success);
-if(*success==false) 
-{
-destroyQueue(avlTreeLevelOrderIterator->queue);
-break;
-}
-x++;
-}
-if(p->right!=NULL)
-{
-addToQueue(avlTreeLevelOrderIterator->queue,p->left,success);
-if(*success==false) 
-{
-destroyQueue(avlTreeLevelOrderIterator->queue);
-break;
-}
-x++;
-}
-
-}
-
-
-}
-
-
-
-
-}
-
-
-
-*/
-//.................
 void balanceAVLTree(AVLTree *avlTree,Stack *stack)
 {
 if(isStackEmpty(stack)) return;

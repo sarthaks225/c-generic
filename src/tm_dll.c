@@ -20,8 +20,6 @@ return doublyLinkedList;
 
 void destroyDoublyLinkedList(DoublyLinkedList *doublyLinkedList)
 {
-DoublyLinkedListNode *node;
-
 if(doublyLinkedList==NULL) return;
 clearDoublyLinkedList(doublyLinkedList);
 free(doublyLinkedList);

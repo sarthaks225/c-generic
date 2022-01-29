@@ -1,5 +1,5 @@
 #ifndef __TM_SLL__H
-#define __TM_SLL__ 1234
+#define __TM_SLL__H 1234
 #include<tm_common.h>
 typedef struct __$_tm_sll_node
 {

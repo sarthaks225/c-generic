@@ -2,6 +2,7 @@
 #define __tm_AVLTree_h 121
 #include<tm_common.h>
 #include<tm_stack.h>
+#include<tm_queue.h>
 #include<stdio.h>
 
 typedef struct __$_tm_avl_tree_node
